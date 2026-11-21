@@ -13,10 +13,6 @@ import android.media.MediaRecorder
 import java.io.IOException
 import java.util.UUID
 
-/**
- * Bluetooth Classic (RFCOMM) push-to-talk engine.
- * One phone calls listen(), the other calls connect(device).
- */
 @SuppressLint("MissingPermission")
 class Walkie(
     private val adapter: BluetoothAdapter,
@@ -25,7 +21,7 @@ class Walkie(
 ) {
     companion object {
         val APP_UUID: UUID = UUID.fromString("8f1d2c3a-5b6e-4a7f-9c0d-1e2f3a4b5c6d")
-        const val RATE = 8000 // 8 kHz mono: reliable over Bluetooth
+        const val RATE = 8000
     }
 
     private var server: BluetoothServerSocket? = null
@@ -45,8 +41,8 @@ class Walkie(
                 val client = s.accept()
                 s.close()
                 start(client)
-            } catch (e: IOException) {
-                onStatus("Wait bondho hoyeche")
+            } catch (e: Exception) {
+                onStatus("Wait error: ${e.message}")
             }
         }.start()
     }
@@ -56,12 +52,11 @@ class Walkie(
         onStatus("Connect korchi: ${device.name ?: device.address}...")
         Thread {
             try {
-                adapter.cancelDiscovery()
                 val s = device.createRfcommSocketToServiceRecord(APP_UUID)
                 s.connect()
                 start(s)
-            } catch (e: IOException) {
-                onStatus("Connect hoy nai. Onno phone e 'Wait' chaliye abar try korun.")
+            } catch (e: Exception) {
+                onStatus("Connect hoy nai: ${e.message}")
             }
         }.start()
     }
